@@ -3,10 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 from typing import Optional, List
 from app.config.database import get_db
-from app.models.book import Book
-from app.schemas.book import BookCreate, BookUpdate, BookInDB
+from app.models.books import Book
+from app.schemas.books import BookCreate, BookUpdate, BookInDB
 
 router = APIRouter(prefix="/books", tags=["books"])
+
 
 @router.get("/", response_model=List[BookInDB])
 async def get_books(
@@ -17,12 +18,9 @@ async def get_books(
     author: Optional[str] = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    Get all books with optional filtering, searching, and pagination [citation:7]
-    """
+    
     query = select(Book).where(Book.is_deleted == False)
     
-    # Search in title, author, description
     if search:
         query = query.where(
             or_(
@@ -32,15 +30,12 @@ async def get_books(
             )
         )
     
-    # Filter by genre
     if genre:
         query = query.where(Book.genre == genre)
     
-    # Filter by author
     if author:
         query = query.where(Book.author.ilike(f"%{author}%"))
     
-    # Pagination
     query = query.offset(skip).limit(limit)
     
     result = await db.execute(query)
@@ -49,7 +44,7 @@ async def get_books(
 
 @router.get("/{book_id}", response_model=BookInDB)
 async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):
-    """Get a specific book by ID"""
+   
     query = select(Book).where(Book.id == book_id, Book.is_deleted == False)
     result = await db.execute(query)
     book = result.scalar_one_or_none()
@@ -60,8 +55,7 @@ async def get_book(book_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/", response_model=BookInDB, status_code=201)
 async def create_book(book: BookCreate, db: AsyncSession = Depends(get_db)):
-    """Create a new book"""
-    # Check if ISBN already exists
+  
     if book.isbn:
         query = select(Book).where(Book.isbn == book.isbn)
         result = await db.execute(query)
@@ -81,7 +75,7 @@ async def update_book(
     book_update: BookUpdate, 
     db: AsyncSession = Depends(get_db)
 ):
-    """Update a book"""
+    
     query = select(Book).where(Book.id == book_id, Book.is_deleted == False)
     result = await db.execute(query)
     db_book = result.scalar_one_or_none()
@@ -89,7 +83,6 @@ async def update_book(
     if not db_book:
         raise HTTPException(status_code=404, detail="Book not found")
     
-    # Update only provided fields
     for key, value in book_update.model_dump(exclude_unset=True).items():
         setattr(db_book, key, value)
     
@@ -99,7 +92,7 @@ async def update_book(
 
 @router.delete("/{book_id}", status_code=204)
 async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)):
-    """Soft delete a book [citation:7]"""
+    
     query = select(Book).where(Book.id == book_id, Book.is_deleted == False)
     result = await db.execute(query)
     db_book = result.scalar_one_or_none()
@@ -107,6 +100,5 @@ async def delete_book(book_id: int, db: AsyncSession = Depends(get_db)):
     if not db_book:
         raise HTTPException(status_code=404, detail="Book not found")
     
-    # Soft delete
     db_book.is_deleted = True
     await db.commit()

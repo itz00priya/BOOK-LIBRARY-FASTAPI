@@ -14,16 +14,16 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(books.router, prefix="/api/v1")
-app.include_router(users.router, prefix="/api/v1")
-app.include_router(borrowings.router, prefix="/api/v1")
+# Include routers directly (they are already router objects)
+app.include_router(books, prefix="/api/v1")
+app.include_router(users, prefix="/api/v1")
+app.include_router(borrowings, prefix="/api/v1")
 
 @app.get("/")
 async def root():
