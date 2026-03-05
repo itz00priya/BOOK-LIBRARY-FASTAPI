@@ -5,9 +5,9 @@ import enum
 from app.config.database import Base
 
 class UserRole(str, enum.Enum):
-    ADMIN = "admin"
-    LIBRARIAN = "librarian"
-    MEMBER = "member"
+    admin = "admin"
+    librarian = "librarian"
+    student = "student"
 
 class User(Base):
     __tablename__ = "users"
@@ -17,7 +17,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     full_name = Column(String(100))
     hashed_password = Column(String(200), nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.MEMBER)
+    role = Column(Enum(UserRole), default=UserRole.student)
     is_active = Column(Boolean, default=True)
     
     phone = Column(String(20), nullable=True)
@@ -30,3 +30,12 @@ class User(Base):
     # Relationships
     borrowings = relationship("Borrowing", back_populates="user")
     favorites = relationship("Favorite", back_populates="user")
+
+
+
+
+
+
+
+
+

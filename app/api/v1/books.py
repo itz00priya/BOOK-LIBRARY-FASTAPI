@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select, or_
 from typing import Optional, List
 from app.config.database import get_db
@@ -63,7 +63,10 @@ async def create_book(book: BookCreate, db: AsyncSession = Depends(get_db)):
         if existing:
             raise HTTPException(status_code=400, detail="ISBN already exists")
     
-    db_book = Book(**book.model_dump())
+    book_data = book.model_dump()
+    book_data["available_copies"] = book_data["total_copies"]
+    
+    db_book = Book(**book_data)
     db.add(db_book)
     await db.commit()
     await db.refresh(db_book)
@@ -82,9 +85,18 @@ async def update_book(
     
     if not db_book:
         raise HTTPException(status_code=404, detail="Book not found")
-    
+        
+    if book_update.isbn:
+        isbn_query = select(Book).where(Book.isbn == book_update.isbn, Book.id != book_id)
+        isbn_result = await db.execute(isbn_query)
+        if isbn_result.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="ISBN already exists")
     for key, value in book_update.model_dump(exclude_unset=True).items():
         setattr(db_book, key, value)
+        
+    # Auto-readjust available_copies gracefully if it exceeds total_copies
+    if db_book.available_copies > db_book.total_copies:
+        db_book.available_copies = db_book.total_copies
     
     await db.commit()
     await db.refresh(db_book)

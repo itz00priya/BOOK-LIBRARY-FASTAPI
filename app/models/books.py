@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.config.database import Base
+from app.config.base import Base
 
 class Book(Base):
     __tablename__ = "books"
@@ -23,7 +23,7 @@ class Book(Base):
     total_copies = Column(Integer, default=1)
     available_copies = Column(Integer, default=1)
     
-    # Soft delete feature [citation:7]
+    # Soft delete feature
     is_deleted = Column(Boolean, default=False)
     deleted_at = Column(DateTime, nullable=True)
     

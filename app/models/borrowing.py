@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Enum
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Float, Enum, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -22,6 +22,7 @@ class Borrowing(Base):
     
     status = Column(Enum(BorrowingStatus), default=BorrowingStatus.BORROWED)
     fine_amount = Column(Float, default=0.0)
+    fine_paid = Column(Boolean, default=False)
     
     # Relationships
     book = relationship("Book", back_populates="borrowings")

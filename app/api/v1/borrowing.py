@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import joinedload
 from sqlalchemy import select, and_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from app.config.database import get_db
 from app.models.borrowing import Borrowing, BorrowingStatus
 from app.models.books import Book
 from app.models.users import User
+from app.utils.email import send_return_confirmation_email
 
 router = APIRouter(prefix="/borrowing", tags=["borrowing"])
 
@@ -51,7 +53,7 @@ async def borrow_book(
         raise HTTPException(status_code=400, detail="User already has this book borrowed")
     
     # Create borrowing record
-    due_date = datetime.now() + timedelta(days=14)
+    due_date = datetime.now(timezone.utc) + timedelta(days=7)
     borrowing = Borrowing(
         book_id=book_id,
         user_id=user_id,
@@ -67,7 +69,7 @@ async def borrow_book(
     await db.refresh(borrowing)
     
     return borrowing
-
+'''
 @router.post("/{borrowing_id}/return")
 async def return_book(
     borrowing_id: int,
@@ -87,7 +89,7 @@ async def return_book(
         raise HTTPException(status_code=400, detail="Book already returned")
     
     # Update borrowing record
-    borrowing.return_date = datetime.now()
+    borrowing.return_date = datetime.now(timezone.utc)
     borrowing.status = BorrowingStatus.RETURNED
     
     # Calculate fine if overdue
@@ -106,6 +108,63 @@ async def return_book(
     return {
         "message": "Book returned successfully",
         "fine_amount": borrowing.fine_amount
+    }'''
+
+
+
+
+@router.post("/{borrowing_id}/return")
+async def return_book(
+    borrowing_id: int,
+    background_tasks: BackgroundTasks, 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Return a borrowed book and send email notification
+    """
+    # 1. Borrowing record fetch karein aur User + Book ko load karein
+    query = select(Borrowing).options(
+        joinedload(Borrowing.user), 
+        joinedload(Borrowing.book)
+    ).where(Borrowing.id == borrowing_id)
+    
+    result = await db.execute(query)
+    borrowing = result.scalar_one_or_none()
+    
+    if not borrowing:
+        raise HTTPException(status_code=404, detail="Borrowing record not found")
+    
+    if borrowing.status == BorrowingStatus.RETURNED:
+        raise HTTPException(status_code=400, detail="Book already returned")
+    
+    # 2. Update borrowing record
+    borrowing.return_date = datetime.now(timezone.utc)
+    borrowing.status = BorrowingStatus.RETURNED
+    
+    # 3. Calculate fine if overdue
+    if borrowing.return_date > borrowing.due_date:
+        days_overdue = (borrowing.return_date - borrowing.due_date).days
+        borrowing.fine_amount = float(days_overdue * 1.0)  # $1 per day fine
+    
+    # 4. Update book available copies
+    book = borrowing.book
+    book.available_copies += 1
+    
+    await db.commit()
+    await db.refresh(borrowing)
+
+    # 5. Send Email Notification (Background Task mein taaki API slow na ho)
+    background_tasks.add_task(
+        send_return_confirmation_email, 
+        email_to=borrowing.user.email, 
+        user_name=borrowing.user.full_name, 
+        book_title=book.title
+    )
+    
+    return {
+        "message": "Book returned successfully and confirmation email is being sent.",
+        "fine_amount": borrowing.fine_amount,
+        "email_sent_to": borrowing.user.email
     }
 
 @router.get("/")
