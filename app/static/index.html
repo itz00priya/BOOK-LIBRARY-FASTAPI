@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Library Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="icon">📚</span>
+                <span class="text">BookLib</span>
+            </div>
+            <nav>
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <span class="icon">📊</span>
+                    <span class="text">Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-view="books">
+                    <span class="icon">📖</span>
+                    <span class="text">Books</span>
+                </a>
+                <a href="#" class="nav-item" data-view="borrowings">
+                    <span class="icon">🤝</span>
+                    <span class="text">Borrowings</span>
+                </a>
+                <a href="#" class="nav-item" data-view="users">
+                    <span class="icon">👥</span>
+                    <span class="text">Users</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar" id="user-initials">AD</div>
+                    <div class="user-info">
+                        <p class="name" id="user-email">Admin</p>
+                        <p class="role">Librarian</p>
+                    </div>
+                </div>
+                <a href="#" class="nav-item" id="logout-btn" style="margin-top: 1rem; color: var(--danger);">
+                    <span class="icon">🚪</span>
+                    <span class="text">Log Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Search books, authors, or genres...">
+                    <button id="search-btn">🔍</button>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="add-book-btn">+ Add Book</button>
+                </div>
+            </header>
+
+            <section id="dashboard-view" class="view active">
+                <h1 class="view-title">Dashboard Overview</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon books">📚</div>
+                        <div class="stat-details">
+                            <h3 id="stat-total-books">0</h3>
+                            <p>Total Books</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon available">✅</div>
+                        <div class="stat-details">
+                            <h3 id="stat-available-books">0</h3>
+                            <p>Available</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon active-borrow">🤝</div>
+                        <div class="stat-details">
+                            <h3 id="stat-active-borrowings">0</h3>
+                            <p>Active Borrowings</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon overdue">⚠️</div>
+                        <div class="stat-details">
+                            <h3 id="stat-overdue">0</h3>
+                            <p>Overdue</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-row">
+                    <div class="card recent-books">
+                        <div class="card-header">
+                            <h2>Recent Books</h2>
+                            <a href="#" class="view-all" data-target="books">View All</a>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Genre</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-books-list">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="books-view" class="view">
+                <h1 class="view-title">Manage Books</h1>
+                <div class="card">
+                    <div class="card-body">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Genre</th>
+                                    <th>Copies</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-books-list">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals, etc. can be added later -->
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

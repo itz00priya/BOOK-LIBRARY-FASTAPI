@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.api.v1 import books, users, borrowings, payments
 from app.config.settings import settings
 from app.config.database import engine
@@ -41,13 +42,28 @@ app.include_router(users, prefix="/api/v1")
 app.include_router(borrowings, prefix="/api/v1")
 app.include_router(payments, prefix="/api/v1")
 
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 @app.get("/")
 async def root():
-    return {
-        "message": "Welcome to Book Library API",
-        "version": settings.APP_VERSION,
-        "docs": "/docs"
-    }
+    from fastapi.responses import FileResponse
+    return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+@app.get("/login")
+async def login_page():
+    from fastapi.responses import FileResponse
+    return FileResponse(os.path.join(STATIC_DIR, "login.html"))
+
+@app.get("/register")
+async def register_page():
+    from fastapi.responses import FileResponse
+    return FileResponse(os.path.join(STATIC_DIR, "register.html"))
+
+# Mount static files
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/health")
 async def health_check():
