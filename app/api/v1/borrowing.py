@@ -12,15 +12,18 @@ from app.utils.email import send_return_confirmation_email
 
 router = APIRouter(prefix="/borrowing", tags=["borrowing"])
 
+from app.schemas.borrowing import BorrowCreate
+
 @router.post("/")
 async def borrow_book(
-    book_id: int,
-    user_id: int,
+    borrow_in: BorrowCreate,
     db: AsyncSession = Depends(get_db)
 ):
     """
     Borrow a book
     """
+    book_id = borrow_in.book_id
+    user_id = borrow_in.user_id
     # Check if book exists and is available
     book_query = select(Book).where(Book.id == book_id, Book.is_deleted == False)
     book_result = await db.execute(book_query)
