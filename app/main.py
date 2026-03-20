@@ -2,8 +2,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.api.v1 import books, users, borrowings, payments
-from app.api.v1.users import get_current_user
+from app.api.v1 import books, users, borrowings, payments, admin
+from app.api.v1.users import get_current_user,admin_required
 from app.config.settings import settings
 from app.config.database import engine
 from app.config.base import Base
@@ -42,6 +42,8 @@ app.include_router(books, prefix="/api/v1", dependencies=[Depends(get_current_us
 app.include_router(users, prefix="/api/v1")
 app.include_router(borrowings, prefix="/api/v1", dependencies=[Depends(get_current_user)])
 app.include_router(payments, prefix="/api/v1", dependencies=[Depends(get_current_user)])
+#app.include_router(admin, prefix="/api/v1")
+app.include_router(admin, prefix="/api/v1", dependencies=[Depends(admin_required)])
 
 import os
 
