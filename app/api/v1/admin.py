@@ -22,11 +22,7 @@ class AdminStatsResponse(BaseModel):
     active_borrowings: int
     total_fines: float
 
-@router.get("/stats", response_model=AdminStatsResponse)
-async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
-    # total users
-    users_result = await db.execute(select(func.count(User.id)))
-    total_users = users_result.scalar_one()
+
 
     # total books
     books_result = await db.execute(select(func.count(Book.id)).where(Book.is_deleted == False))
